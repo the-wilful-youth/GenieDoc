@@ -7,13 +7,18 @@ from langchain_community.vectorstores import FAISS
 from langchain.tools.retriever import create_retriever_tool
 from dotenv import load_dotenv
 from langchain_anthropic import ChatAnthropic
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_openai import ChatOpenAI
 from langchain.agents import AgentExecutor, create_tool_calling_agent
 
 import os
-os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
+
+# Load environment variables from .env
+load_dotenv()
+
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 embeddings = SpacyEmbeddings(model_name="en_core_web_sm")
+
 def pdf_read(pdf_doc):
     text = ""
     for pdf in pdf_doc:
@@ -31,52 +36,65 @@ def vector_store(text_chunks):
     vector_store = FAISS.from_texts(text_chunks, embedding=embeddings)
     vector_store.save_local("faiss_db")
 
-def get_conventional_chain(tools, ques):
-    os.environ["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"]=os.getenv["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"]
-    llm = ChatAnthropic(model="claude-3-sonnet-20240229", temperature=0, api_key=os.getenv("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"), verbose=True)
-    llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0, api_key="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")
-    prompt = ChatPromptTemplate.from_messages([(
-        "system",
-        """You are a helpful assistant. Answer the questions as detailed as possible from the provided context, make sure to provide all the details, if the answer is not in provided context, just say "answer is not availible in the context", don't provide the wrong answer""",
-    ), 
-    ("placeholder", "{chat_history}"),
-    ("human", "{input}"),
-    ("placeholder", "{agent_scratchpad}"),])
+def get_conversational_chain(tools, ques):
+    # Use proper function call for os.getenv
+    anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
+    openai_api_key = os.getenv("OPEN_AI_KEY")
     
-    tool = [tools]
-    agent = create_tool_calling_agent(llm, tool, prompt)
-
-    agent_executor = AgentExecutor(agent=agent, tools=tool, verbose=True)
+    if not anthropic_api_key or not openai_api_key:
+        raise ValueError("API keys for Anthropic and/or OpenAI are missing. Please set them in your environment variables.")
+    
+    llm_anthropic = ChatAnthropic(
+        model="claude-3-sonnet-20240229", 
+        temperature=0, 
+        api_key=anthropic_api_key,
+        verbose=True
+    )
+    llm_openai = ChatOpenAI(
+        model_name="gpt-3.5-turbo", 
+        temperature=0, 
+        api_key=openai_api_key,
+        verbose=True
+    )
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", "You are a helpful assistant. Answer the question as detailed as possible from the provided context. If the answer is not in the provided context, say 'answer is not available in the context'."),
+        ("placeholder", "{chat_history}"),
+        ("human", "{input}"),
+        ("placeholder", "{agent_scratchpad}")
+    ])
+    
+    agent = create_tool_calling_agent(llm_openai, [tools], prompt)
+    agent_executor = AgentExecutor(agent=agent, tools=[tools], verbose=True)
     response = agent_executor.invoke({"input": ques})
-    print(response)
     st.write("Reply: ", response['output'])
 
 def user_input(user_question):
-
     new_db = FAISS.load_local("faiss_db", embeddings, allow_dangerous_deserialization=True)
-
     retriever = new_db.as_retriever()
-    retrieval_chain = create_retriever_tool(retriever, "pdf_extractor", "This tool is to give answer to queries from the pdf.")
-    get_conventional_chain(retrieval_chain, user_question)
+    retrieval_chain = create_retriever_tool(retriever, "pdf_extractor", "This tool answers queries from the PDF.")
+    get_conversational_chain(retrieval_chain, user_question)
 
 def main():
-    st.set_page_config("Chat PDF")
-    st.header("RAG based Chat with PDF")
+    st.set_page_config(page_title="Chat PDF", layout="wide")
+    st.header("RAG-based Chat with PDF")
 
-    user_question = st.text_input("Ask a question from the PDF file")
+    user_question = st.text_input("Ask a question from the PDF files")
 
     if user_question:
         user_input(user_question)
 
     with st.sidebar:
         st.title("Menu:")
-        pdf_doc = st.file_uploader("Upload your PDF file and click on Submit & Process button", accept_multiple_files=True)
+        pdf_doc = st.file_uploader("Upload your PDF Files and click 'Submit & Process'", accept_multiple_files=True)
         if st.button("Submit & Process"):
-            with st.spinner("Processing..."):
-                raw_text = pdf_read(pdf_doc)
-                text_chunks = get_chunks(raw_text)
-                vector_store(text_chunks)
-                st.success("Done!")
+            if pdf_doc:
+                with st.spinner("Processing..."):
+                    raw_text = pdf_read(pdf_doc)
+                    text_chunks = get_chunks(raw_text)
+                    vector_store(text_chunks)
+                    st.success("Done")
+            else:
+                st.error("Please upload at least one PDF file.")
 
 if __name__ == "__main__":
     main()
