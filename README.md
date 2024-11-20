@@ -108,7 +108,7 @@ If the answer is not found in the uploaded PDFs, the app will let you know, avoi
 4. **Run the Application**:
 
    ```bash
-   streamlit run app.py
+   streamlit run main.py
    ```
 
 5. **Interact with the App**:
@@ -120,7 +120,7 @@ If the answer is not found in the uploaded PDFs, the app will let you know, avoi
 ## 📂 File Structure
 
 ```plaintext
-|-- app.py                   # Main application script
+|-- main.py                   # Main application script
 |-- requirements.txt         # List of dependencies
 |-- .env                     # Environment variables for API keys
 |-- faiss_db/                # Local FAISS vector store (auto-generated)
