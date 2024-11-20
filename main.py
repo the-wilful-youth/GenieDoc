@@ -50,3 +50,33 @@ def get_conventional_chain(tools, ques):
     response = agent_executor.invoke({"input": ques})
     print(response)
     st.write("Reply: ", response['output'])
+
+def user_input(user_question):
+
+    new_db = FAISS.load_local("faiss_db", embeddings, allow_dangerous_deserialization=True)
+
+    retriever = new_db.as_retriever()
+    retrieval_chain = create_retriever_tool(retriever, "pdf_extractor", "This tool is to give answer to queries from the pdf.")
+    get_conventional_chain(retrieval_chain, user_question)
+
+def main():
+    st.set_page_config("Chat PDF")
+    st.header("RAG based Chat with PDF")
+
+    user_question = st.text_input("Ask a question from the PDF file")
+
+    if user_question:
+        user_input(user_question)
+
+    with st.sidebar:
+        st.title("Menu:")
+        pdf_doc = st.file_uploader("Upload your PDF file and click on Submit & Process button", accept_multiple_files=True)
+        if st.button("Submit & Process"):
+            with st.spinner("Processing..."):
+                raw_text = pdf_read(pdf_doc)
+                text_chunks = get_chunks(raw_text)
+                vector_store(text_chunks)
+                st.success("Done!")
+
+if __name__ == "__main__":
+    main()
