@@ -36,7 +36,7 @@ This project was developed by:
 
 - [**Anurag**](https://github.com/the-wilful-youth)
 - [**Dhawal**](https://github.com/techbolt)
-- [**Animesh**]
+- [**Animesh**](https://github.com/anigupta0207)
 
 Explore their GitHub profiles to discover more of their amazing work!
 
