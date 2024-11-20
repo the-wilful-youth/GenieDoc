@@ -9,3 +9,6 @@ from dotenv import load_dotenv
 from langchain_anthropic import ChatAnthropic
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain.agents import AgentExecutor, create_tool_calling_agent
+
+import os
+os.environment["KMP_DUPLICATE_LIB_OK"]="TRUE"
