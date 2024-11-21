@@ -1,3 +1,17 @@
+#DEVELOPED BY: ANURAG, DHAWAL, ANIMESH
+#TECHNOLOGY: RETRIEVAL-AUGMENTED GENERATION(RAG)
+#APIs USED: OPENAI, CLAUDEAI
+#PREREQUISITES: 
+                 # streamlit
+                 # PyPDF2
+                 # langchain
+                 # langchain-community
+                 # langchain-openai
+                 # langchain-anthropic
+                 # faiss-cpu
+                 # spacy
+                 # python-dotenv
+
 import streamlit as st
 from PyPDF2 import PdfReader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
