@@ -2,15 +2,15 @@
 #TECHNOLOGY: RETRIEVAL-AUGMENTED GENERATION(RAG)
 #APIs USED: OPENAI, CLAUDEAI, GEMENI
 #PREREQUISITES: 
-                 # streamlit
-                 # PyPDF2
-                 # langchain
-                 # langchain-community
-                 # langchain-openai
-                 # langchain-anthropic
-                 # faiss-cpu
-                 # spacy
-                 # python-dotenv
+#  -   streamlit
+#  -   PyPDF2
+#  -   langchain
+#  -   langchain-community
+#  -   langchain-openai
+#  -   langchain-anthropic
+#  -   faiss-cpu
+#  -   spacy
+#  -   python-dotenv
 
 import streamlit as st
 from PyPDF2 import PdfReader
@@ -23,6 +23,7 @@ from dotenv import load_dotenv
 # from langchain_anthropic import ChatAnthropic
 # from langchain_openai import ChatOpenAI
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain.agents import AgentExecutor, create_tool_calling_agent
 
 import os
@@ -43,7 +44,7 @@ def pdf_read(pdf_doc):
     return text
 
 def get_chunks(text):
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=10000, chunk_overlap=1000)
     chunks = text_splitter.split_text(text)
     return chunks
 
