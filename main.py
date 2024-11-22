@@ -20,8 +20,9 @@ from langchain_community.embeddings.spacy_embeddings import SpacyEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain.tools.retriever import create_retriever_tool
 from dotenv import load_dotenv
-from langchain_anthropic import ChatAnthropic
-from langchain_openai import ChatOpenAI
+# from langchain_anthropic import ChatAnthropic
+# from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.agents import AgentExecutor, create_tool_calling_agent
 
 import os
@@ -38,7 +39,7 @@ def pdf_read(pdf_doc):
     for pdf in pdf_doc:
         pdf_reader = PdfReader(pdf)
         for page in pdf_reader.pages:
-            text += page.extract_text()
+            text += page.extract_text() or ""
     return text
 
 def get_chunks(text):
@@ -54,22 +55,23 @@ def get_conversational_chain(tools, ques):
     # Use proper function call for os.getenv
     anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
     openai_api_key = os.getenv("OPEN_AI_KEY")
+    gemini_api_key = os.getenv("GEMINI_API_KEY")
     
-    if not anthropic_api_key or not openai_api_key:
+    if not anthropic_api_key or not openai_api_key or not gemini_api_key:
         raise ValueError("API keys for Anthropic and/or OpenAI are missing. Please set them in your environment variables.")
     
-    llm_anthropic = ChatAnthropic(
-        model="claude-3-sonnet-20240229", 
-        temperature=0, 
-        api_key=anthropic_api_key,
+    llm_gemini = ChatGoogleGenerativeAI(
+        model="gemini-1.5-flash", 
+        api_key=gemini_api_key,
         verbose=True
     )
-    llm_openai = ChatOpenAI(
-        model_name="gpt-3.5-turbo", 
-        temperature=0, 
-        api_key=openai_api_key,
-        verbose=True
-    )
+
+    # llm_openai = ChatOpenAI(
+    #     model_name="gpt-3.5-turbo", 
+    #     temperature=0, 
+    #     api_key=openai_api_key,
+    #     verbose=True
+    # )
     prompt = ChatPromptTemplate.from_messages([
         ("system", "You are a helpful assistant. Answer the question as detailed as possible from the provided context. If the answer is not in the provided context, say 'answer is not available in the context'."),
         ("placeholder", "{chat_history}"),
@@ -77,7 +79,7 @@ def get_conversational_chain(tools, ques):
         ("placeholder", "{agent_scratchpad}")
     ])
     
-    agent = create_tool_calling_agent(llm_openai, [tools], prompt)
+    agent = create_tool_calling_agent(llm_gemini, [tools], prompt)
     agent_executor = AgentExecutor(agent=agent, tools=[tools], verbose=True)
     response = agent_executor.invoke({"input": ques})
     st.write("Reply: ", response['output'])
