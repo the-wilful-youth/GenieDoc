@@ -44,9 +44,9 @@ def pdf_read(pdf_doc):
     return text
 
 def get_chunks(text):
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=10000, chunk_overlap=1000)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000000, chunk_overlap=10000)
     chunks = text_splitter.split_text(text)
-    return chunks
+    return chunks 
 
 def vector_store(text_chunks):
     vector_store = FAISS.from_texts(text_chunks, embedding=embeddings)

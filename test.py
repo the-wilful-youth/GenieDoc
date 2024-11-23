@@ -12,6 +12,7 @@ import os
 
 # Load environment variables
 load_dotenv()
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "C:\\Users\\dhawa\\Downloads\\client_secret_658973278087-i5bn1sn9khbglho6of29l1jjriud3qdd.apps.googleusercontent.com.json"
 os.environ["GEMINI_API_KEY"] = os.getenv("GEMINI_API_KEY")
 
 # Function to extract text from PDFs
