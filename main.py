@@ -44,7 +44,7 @@ def pdf_read(pdf_doc):
     return text
 
 def get_chunks(text):
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=10000000, chunk_overlap=100000)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000000, chunk_overlap=100000)
     chunks = text_splitter.split_text(text)
     return chunks
 
