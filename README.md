@@ -22,7 +22,8 @@ Welcome to **Chat PDF**, an innovative application that turns static PDF content
 
 ### 🤖 **Powerful Conversational AI**
 
-- Leverages **OpenAI GPT-3.5** for context-aware and detailed responses.
+- Uses **OpenAI GPT-3.5**, **ClaudeAI**, and **Google Gemini** models for conversational responses.
+- Ensures high-quality and contextually relevant answers.
 
 ### 🖥️ **Interactive Interface**
 
@@ -104,6 +105,8 @@ If the answer is not found in the uploaded PDFs, the app will let you know, avoi
 
    ```env
    OPENAI_API_KEY=your_openai_api_key
+   ANTHROPIC_API_KEY=your_anthropic_api_key
+   GEMINI_API_KEY=your_gemini_api_key
    ```
 
 4. **Run the Application**:
