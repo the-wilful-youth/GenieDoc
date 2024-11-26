@@ -1,3 +1,15 @@
+# DEVELOPED BY: ANURAG, DHAWAL, ANIMESH
+# TECHNOLOGY: RETRIEVAL-AUGMENTED GENERATION (RAG)
+# APIs USED: GEMINI (Google Generative AI)
+# PREREQUISITES: 
+#  - streamlit
+#  - PyPDF2
+#  - langchain
+#  - langchain-community
+#  - faiss-cpu
+#  - spacy
+#  - python-dotenv
+
 import streamlit as st
 from PyPDF2 import PdfReader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -5,107 +17,138 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.embeddings.spacy_embeddings import SpacyEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain.tools.retriever import create_retriever_tool
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain.agents import AgentExecutor, create_tool_calling_agent
 from dotenv import load_dotenv
-from concurrent.futures import ThreadPoolExecutor
 import os
 
 # Load environment variables
 load_dotenv()
+
+# Set environment flag for PyPDF2 compatibility
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
-# Initialize embeddings
+# Initialize embeddings with SpaCy
 embeddings = SpacyEmbeddings(model_name="en_core_web_sm")
 
-# Parallel PDF reader for efficient text extraction
-def pdf_read_parallel(pdf_docs):
-    def extract_text(pdf):
-        pdf_reader = PdfReader(pdf)
-        return "".join(page.extract_text() or "" for page in pdf_reader.pages)
-
-    with ThreadPoolExecutor() as executor:
-        texts = list(executor.map(extract_text, pdf_docs))
-    return "".join(texts)
-
-# Split text into smaller chunks for vector storage
-def get_chunks(text):
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=200)
-    return text_splitter.split_text(text)
-
-# Create or load vector store
-def vector_store(text_chunks, save_path="faiss_db"):
-    vector_store = FAISS.from_texts(text_chunks, embedding=embeddings)
-    vector_store.save_local(save_path)
-    return vector_store
-
-# Load or initialize FAISS retriever
-def get_retriever(db_path="faiss_db"):
-    if os.path.exists(db_path):
-        return FAISS.load_local(db_path, embeddings, allow_dangerous_deserialization=True).as_retriever()
-    raise FileNotFoundError("Vector database not found. Please process PDF files first.")
-
-# Generate responses using the retriever
-def get_response(retriever, question):
-    # Define prompt for the assistant
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are a helpful assistant. Answer the question as detailed as possible using the provided context. If the answer is not in the context, say 'answer is not available in the context'."),
-        ("placeholder", "{chat_history}"),
-        ("human", "{input}"),
-        ("placeholder", "{agent_scratchpad}")
-    ])
-
-    # Create the tool with the retriever
-    retriever_tool = create_retriever_tool(retriever, "pdf_extractor", "This tool answers queries from the PDF.")
-    
-    # Log the raw response for debugging
-    response = retriever_tool.invoke({"query": question})
-    #st.write("Debug: Raw Response from invoke()", response)
-    
-    # Handle response dynamically
-    if isinstance(response, dict):
-        if 'output' in response:
-            return response['output']
-        elif 'result' in response:
-            return response['result']
-        else:
-            raise ValueError(f"Unexpected dictionary format: {response}")
-    elif isinstance(response, str):
-        return response  # Assume the response itself is the output
-    else:
-        raise ValueError(f"Unexpected response type: {type(response)} with content: {response}")
-
-# Main application logic
-def main():
-    st.set_page_config(page_title="Enhanced Chat PDF", layout="wide")
-    st.header("Efficient RAG-based Chat with PDF")
-
-    # User input for querying
-    user_question = st.text_input("Ask a question about the uploaded PDFs:")
-    if user_question:
+# Function to extract text from uploaded PDF files
+def pdf_read(pdf_files):
+    text = ""
+    for pdf in pdf_files:
         try:
-            retriever = get_retriever()
-            response = get_response(retriever, user_question)
-            st.write("Reply: ", response)
-        except FileNotFoundError as e:
-            st.error(str(e))
-        except ValueError as e:
-            st.error(f"Value Error: {e}")
+            pdf_reader = PdfReader(pdf)
+            for page in pdf_reader.pages:
+                page_text = page.extract_text()
+                if page_text:
+                    text += page_text
+                else:
+                    st.warning(f"Unable to extract text from page {page.number + 1}.")
         except Exception as e:
-            st.error(f"An error occurred: {e}")
+            st.error(f"Error reading PDF: {e}")
+    return text
 
-    # Sidebar for PDF upload and processing
+# Function to split extracted text into smaller chunks
+def get_chunks(text):
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+    chunks = text_splitter.split_text(text)
+    return chunks
+
+# Function to create and save a FAISS vector store
+def vector_store(text_chunks):
+    try:
+        vector_store = FAISS.from_texts(text_chunks, embedding=embeddings)
+        vector_store.save_local("faiss_db")
+        st.success("Vector store created successfully.")
+    except Exception as e:
+        st.error(f"Error creating vector store: {e}")
+
+# Function to generate sample questions from the extracted content
+def generate_sample_questions(pdf_content):
+    if not pdf_content.strip():
+        return ["Unable to generate questions as no content was extracted."]
+    
+    # Example static questions for testing:
+    return [
+        "What is the main topic discussed in the PDF?",
+        "Can you summarize the key points from the text?",
+        "What insights can be drawn from the data?",
+        "Are there any case studies or examples mentioned?",
+        "What are the conclusions presented in the document?"
+    ]
+
+# Function to handle RAG-based conversational chain
+def get_conversational_chain(tools, user_question):
+    try:
+        llm_gemini = ChatGoogleGenerativeAI(
+            model="gemini-1.5-flash", 
+            api_key=os.getenv("GEMINI_API_KEY"),
+            verbose=True
+        )
+
+        # Define the prompt template
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", "You are a helpful assistant. Use the provided context to frame responses."),
+            ("human", "{input}"),  # The user input
+            ("placeholder", "{agent_scratchpad}"),  # Required placeholder for agent scratchpad
+        ])
+
+        # Create the agent with tools and prompt
+        agent = create_tool_calling_agent(llm_gemini, [tools], prompt)
+        agent_executor = AgentExecutor(agent=agent, tools=[tools], verbose=True)
+
+        # Provide default value for 'agent_scratchpad'
+        response = agent_executor.invoke({
+            "input": user_question,
+            "agent_scratchpad": ""  # Default value
+        })
+        return response['output']
+    except Exception as e:
+        st.error(f"Error in conversational chain: {e}")
+        return None
+
+# Function to process user queries
+def user_input(user_question):
+    try:
+        new_db = FAISS.load_local("faiss_db", embeddings, allow_dangerous_deserialization=True)
+        retriever = new_db.as_retriever()
+        retrieval_chain = create_retriever_tool(retriever, "pdf_extractor", "This tool answers queries from the PDF.")
+        return get_conversational_chain(retrieval_chain, user_question)
+    except Exception as e:
+        st.error(f"Error processing user input: {e}")
+        return None
+
+# Streamlit main application
+def main():
+    st.set_page_config(page_title="Chat PDF", layout="wide")
+    st.header("RAG-based Chat with PDF")
+
+    user_question = st.text_input("Ask a question from the PDF files")
+
+    if user_question:
+        response = user_input(user_question)
+        if response:
+            st.write("Reply: ", response)
+
     with st.sidebar:
         st.title("Menu:")
-        pdf_docs = st.file_uploader("Upload PDFs and process", accept_multiple_files=True)
+        pdf_files = st.file_uploader("Upload your PDF Files", accept_multiple_files=True, type=["pdf"])
         if st.button("Submit & Process"):
-            if pdf_docs:
-                with st.spinner("Processing PDFs..."):
-                    raw_text = pdf_read_parallel(pdf_docs)  # Parallel PDF reading
-                    text_chunks = get_chunks(raw_text)  # Split text into chunks
-                    vector_store(text_chunks)  # Create vector store
-                    st.success("Processing Complete!")
+            if pdf_files:
+                with st.spinner("Processing..."):
+                    raw_text = pdf_read(pdf_files)
+                    if raw_text.strip():
+                        st.text_area("Extracted Text", raw_text[:1000], height=300)
+                        text_chunks = get_chunks(raw_text)
+                        vector_store(text_chunks)
+                        st.success("Processing complete. You can now ask questions.")
+                        st.write("Sample Questions:")
+                        questions = generate_sample_questions(raw_text)
+                        for question in questions:
+                            st.write(f"- {question}")
+                    else:
+                        st.error("No text could be extracted from the provided PDFs.")
             else:
                 st.error("Please upload at least one PDF file.")
 
-# Run the app
 if __name__ == "__main__":
     main()
