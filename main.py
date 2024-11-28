@@ -62,7 +62,7 @@ def get_conversational_chain(tools, ques):
         raise ValueError("API keys for Anthropic and/or OpenAI are missing. Please set them in your environment variables.")
     
     llm_gemini = ChatGoogleGenerativeAI(
-        model="gemini-1.5-flash", 
+        model="text-embedding-004", 
         api_key=gemini_api_key,
         verbose=True
     )
