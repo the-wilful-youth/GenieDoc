@@ -75,28 +75,56 @@ def user_input(user_question):
     st.write("Reply: ", response["output_text"])
 
 
-
-
+# Define the main application function
 def main():
-    st.set_page_config("Chat PDF")
-    st.header("Rag Based PDF ChatBot")
+    # Configure the page
+    st.set_page_config(
+        page_title="Chat PDF - Gemini",
+        page_icon="📄",
+        layout="wide",
+    )
 
-    user_question = st.text_input("Ask a Question from the PDF Files")
+    # Page header with title and description
+    st.title("📄 Chat with Your PDF Files Using Gemini")
+    st.markdown(
+        """
+        **Gemini** allows you to upload PDF files and ask questions directly from the content.
+        Streamline your research and get answers instantly!
+        """
+    )
+
+    # Sidebar for file upload and processing
+    with st.sidebar:
+        st.header("📂 Upload & Process")
+        st.markdown("Upload your PDF files and click **Submit & Process** to start.")
+        pdf_docs = st.file_uploader(
+            "Upload PDF Files", 
+            accept_multiple_files=True, 
+            type=["pdf"]
+        )
+
+        if st.button("Submit & Process"):
+            if pdf_docs:
+                with st.spinner("Processing your files..."):
+                    raw_text = get_pdf_text(pdf_docs)  # Replace with your function
+                    text_chunks = get_text_chunks(raw_text)  # Replace with your function
+                    get_vector_store(text_chunks)  # Replace with your function
+                    st.success("Files processed successfully! 🎉")
+            else:
+                st.warning("Please upload at least one PDF file.")
+
+    # Main section for user interaction
+    st.subheader("❓ Ask Your Question")
+    user_question = st.text_input(
+        "Type your question below:",
+        placeholder="e.g., What is the main conclusion in the document?"
+    )
 
     if user_question:
-        user_input(user_question)
+        # Handle user input
+        st.write("🔎 **Your Question:**", user_question)
+        user_input(user_question)  # Replace with your function
 
-    with st.sidebar:
-        st.title("Menu:")
-        pdf_docs = st.file_uploader("Upload your PDF Files and Click on the Submit & Process Button", accept_multiple_files=True)
-        if st.button("Submit & Process"):
-            with st.spinner("Processing..."):
-                raw_text = get_pdf_text(pdf_docs)
-                text_chunks = get_text_chunks(raw_text)
-                get_vector_store(text_chunks)
-                st.success("Done")
-
-
-
+# Ensure the application runs when executed
 if __name__ == "__main__":
     main()
