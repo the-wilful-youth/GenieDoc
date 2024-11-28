@@ -71,35 +71,74 @@ def user_input(user_question):
         {"input_documents":docs, "question": user_question}
         , return_only_outputs=True)
 
-    print(response)
-    st.write("Reply: ", response["output_text"])
+    st.write("🤔 **Answer:** ", response["output_text"])
 
 
 # Define the main application function
 def main():
     # Configure the page
     st.set_page_config(
-        page_title="Chat PDF - Gemini",
+        page_title="Chat PDF",
         page_icon="📄",
         layout="wide",
     )
 
-    # Page header with title and description
-    st.title("📄 Chat with Your PDF Files Using Gemini")
+    # Apply custom CSS for improved aesthetics
     st.markdown(
         """
-        **Gemini** allows you to upload PDF files and ask questions directly from the content.
-        Streamline your research and get answers instantly!
-        """
+        <style>
+        /* Style the sidebar */
+        .css-1d391kg {
+            background-color: #f8f9fa;
+        }
+        
+        /* Header styles */
+        .css-10trblm {
+            color: #343a40;
+        }
+        
+        /* Button styling */
+        .stButton > button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 0.5em 1em;
+            border-radius: 5px;
+        }
+        .stButton > button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Text input placeholder color */
+        input::placeholder {
+            color: #adb5bd;
+            font-style: italic;
+        }
+
+        /* Spinner style */
+        .stSpinner {
+            color: #007bff;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
     )
+
+    # Page header with title and description
+    st.title("📄 Chat with Your PDF Files Using Gemini")
+    
 
     # Sidebar for file upload and processing
     with st.sidebar:
         st.header("📂 Upload & Process")
-        st.markdown("Upload your PDF files and click **Submit & Process** to start.")
+        st.markdown(
+            """
+            Upload your PDF files, and click **Submit & Process** to analyze the content.
+            """
+        )
         pdf_docs = st.file_uploader(
-            "Upload PDF Files", 
-            accept_multiple_files=True, 
+            "Upload PDF Files",
+            accept_multiple_files=True,
             type=["pdf"]
         )
 
@@ -109,9 +148,9 @@ def main():
                     raw_text = get_pdf_text(pdf_docs)  # Replace with your function
                     text_chunks = get_text_chunks(raw_text)  # Replace with your function
                     get_vector_store(text_chunks)  # Replace with your function
-                    st.success("Files processed successfully! 🎉")
+                    st.success("🎉 Files processed successfully!")
             else:
-                st.warning("Please upload at least one PDF file.")
+                st.warning("⚠️ Please upload at least one PDF file.")
 
     # Main section for user interaction
     st.subheader("❓ Ask Your Question")
@@ -124,6 +163,9 @@ def main():
         # Handle user input
         st.write("🔎 **Your Question:**", user_question)
         user_input(user_question)  # Replace with your function
+
+        # Display placeholder for answer (you can replace this with the actual function)
+        
 
 # Ensure the application runs when executed
 if __name__ == "__main__":
