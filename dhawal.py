@@ -79,13 +79,13 @@ def user_input(user_question):
 def main():
     # Configure the page
     st.set_page_config(
-        page_title="Chat PDF - Gemini",
+        page_title="DocuGenie",
         page_icon="📄",
         layout="wide",
     )
 
     # Page header with title and description
-    st.title("📄 Chat with Your PDF Files Using Gemini")
+    st.title("📄 Chat with Your PDF Files Using DocuGenie")
     st.markdown(
         """
         **Gemini** allows you to upload PDF files and ask questions directly from the content.
