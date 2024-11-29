@@ -1,6 +1,6 @@
-# Chat PDF: Conversational AI for PDF Files
+# DocuGenie: Conversational AI for PDF Files
 
-Welcome to **Chat PDF**, an innovative application that turns static PDF content into dynamic, interactive conversations. With advanced AI and retrieval techniques, Chat PDF enables you to extract insights and answers directly from your documents.
+Welcome to **DocuGenie**, an innovative application that turns static PDF content into dynamic, interactive conversations. With advanced AI and retrieval techniques, Chat PDF enables you to extract insights and answers directly from your documents.
 
 ---
 
@@ -22,7 +22,7 @@ Welcome to **Chat PDF**, an innovative application that turns static PDF content
 
 ### 🤖 **Powerful Conversational AI**
 
-- Uses **OpenAI GPT-3.5**, **ClaudeAI**, and **Google Gemini** models for conversational responses.
+- Uses **Google Gemini** models for conversational responses.
 - Ensures high-quality and contextually relevant answers.
 
 ### 🖥️ **Interactive Interface**
