@@ -78,7 +78,7 @@ def user_input(user_question):
 def main():
     # Configure the page
     st.set_page_config(
-        page_title="DocuGenie",
+        page_title="GenieDoc",
         page_icon="📄",
         layout="wide",
     )
@@ -125,7 +125,7 @@ def main():
     )
 
     # Page header with title and description
-    st.title("📄 Chat with Your PDF Files Using DocuGenie")
+    st.title("📄 Chat with Your PDF Files Using GenieDoc")
     
 
     # Sidebar for file upload and processing

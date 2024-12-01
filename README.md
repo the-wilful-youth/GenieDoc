@@ -1,6 +1,6 @@
-# DocuGenie: Conversational AI for PDF Files
+# GenieDoc: Conversational AI for PDF Files
 
-Welcome to **DocuGenie**, an innovative application that turns static PDF content into dynamic, interactive conversations. With advanced AI and retrieval techniques, Chat PDF enables you to extract insights and answers directly from your documents.
+Welcome to **GenieDoc**, an innovative application that turns static PDF content into dynamic, interactive conversations. With advanced AI and retrieval techniques, Chat PDF enables you to extract insights and answers directly from your documents.
 
 ---
 
@@ -104,15 +104,13 @@ If the answer is not found in the uploaded PDFs, the app will let you know, avoi
    Create a `.env` file and add your OpenAI API key:
 
    ```env
-   OPENAI_API_KEY=your_openai_api_key
-   ANTHROPIC_API_KEY=your_anthropic_api_key
-   GEMINI_API_KEY=your_gemini_api_key
+   GOOGLE_API_KEY=your_gemini_api_key
    ```
 
 4. **Run the Application**:
 
    ```bash
-   streamlit run main.py
+   streamlit run app.py
    ```
 
 5. **Interact with the App**:
@@ -124,7 +122,7 @@ If the answer is not found in the uploaded PDFs, the app will let you know, avoi
 ## 📂 File Structure
 
 ```plaintext
-|-- main.py                   # Main application script
+|-- app.py                   # Main application script
 |-- requirements.txt         # List of dependencies
 |-- .env                     # Environment variables for API keys
 |-- faiss_db/                # Local FAISS vector store (auto-generated)
@@ -162,4 +160,4 @@ This project is licensed under the **MIT License**.
 
 ---
 
-### Start your journey of exploring PDFs like never before with **Chat PDF**! 🚀
+### Start your journey of exploring PDFs like never before with **GenieDoc**! 🚀
