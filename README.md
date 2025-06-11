@@ -161,3 +161,7 @@ This project is licensed under the **MIT License**.
 ---
 
 ### Start your journey of exploring PDFs like never before with **GenieDoc**! 🚀
+
+---
+
+Created with ❤️ by US
